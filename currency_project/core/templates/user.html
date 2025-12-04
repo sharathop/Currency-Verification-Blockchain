@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verification Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&family=Fira+Code&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1600&auto=format&fit=crop') no-repeat center center/cover fixed;
+            color: white;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        body::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 30, 0.92); z-index: -1;
+        }
+
+        .container { max-width: 700px; margin: 40px auto; }
+
+        /* Header */
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-family: 'Orbitron', sans-serif; font-size: 32px; color: #00ffc8; letter-spacing: 2px; text-shadow: 0 0 20px rgba(0, 255, 200, 0.4); }
+        .header p { color: #aaa; letter-spacing: 1px; font-size: 14px; }
+
+        /* Upload Card */
+        .upload-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* Scanner Zone */
+        .scanner-zone {
+            border: 3px dashed rgba(0, 255, 200, 0.3);
+            padding: 40px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .scanner-zone:hover { border-color: #00ffc8; background: rgba(0, 255, 200, 0.05); }
+        
+        /* Animated Scan Line */
+        .scanner-zone::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+            background: #00ffc8; box-shadow: 0 0 15px #00ffc8;
+            animation: scan 2s infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        input[type="file"] { display: block; margin: 0 auto; color: white; }
+
+        .btn-verify {
+            background: linear-gradient(90deg, #00ffc8, #00b4d8);
+            border: none; padding: 15px 40px; border-radius: 50px;
+            font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 16px;
+            color: #0f0c29; cursor: pointer; transition: 0.3s; width: 100%;
+            box-shadow: 0 0 20px rgba(0, 255, 200, 0.4);
+        }
+        .btn-verify:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(0, 255, 200, 0.7); }
+
+        /* Result Display */
+        .result-area { margin-top: 30px; text-align: left; animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; 
+            font-family: 'Orbitron', sans-serif; margin-bottom: 20px; font-size: 20px;
+        }
+        .status-green { background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; color: #2ecc71; }
+        .status-red { background: rgba(231, 76, 60, 0.2); border: 1px solid #e74c3c; color: #e74c3c; }
+
+        /* Security Alert Banner */
+        .security-alert {
+            background: #e74c3c; color: white; padding: 15px; 
+            border-radius: 10px; margin-bottom: 20px; 
+            border: 2px solid yellow; text-align: center; 
+            animation: flash 2s infinite;
+        }
+        @keyframes flash { 0% {opacity: 1;} 50% {opacity: 0.8;} 100% {opacity: 1;} }
+
+        .details-box {
+            background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px;
+            border-left: 3px solid #00b4d8;
+        }
+        .details-box p { margin-bottom: 10px; font-size: 14px; color: #ccc; }
+        .code { font-family: 'Fira Code', monospace; color: #00ffc8; display: block; margin-top: 5px; font-size: 12px; word-break: break-all; }
+
+        .note-preview { width: 100%; margin-top: 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); }
+
+        .logout-link { position: absolute; top: 20px; right: 20px; color: #ff6b6b; text-decoration: none; font-weight: bold; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <a href="{% url 'logout' %}" class="logout-link"><i class="fas fa-sign-out-alt"></i> LOGOUT</a>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-search-dollar"></i> VERIFICATION PORTAL</h1>
+            <p>Secure Blockchain Note Authentication</p>
+        </div>
+
+        <div class="upload-card">
+            
+            {% if not result %}
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="scanner-zone">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #00ffc8; margin-bottom: 10px;"></i>
+                    <p style="margin-bottom: 15px;">Drop Note Image Here or Click to Browse</p>
+                    <input type="file" name="image" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn-verify">INITIATE SCAN</button>
+            </form>
+            {% endif %}
+
+            {% if result %}
+                <div class="result-area">
+                    
+                    {% if is_suspicious %}
+                    <div class="security-alert">
+                        <h3><i class="fas fa-exclamation-triangle"></i> SUSPICIOUS ACTIVITY DETECTED</h3>
+                        <p>{{ alert_msg }}</p>
+                        <p style="font-size: 12px;">This event has been flagged to authorities.</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="status-badge {% if 'GENUINE' in result %}status-green{% else %}status-red{% endif %}">
+                        {% if 'GENUINE' in result %}
+                            <i class="fas fa-check-circle"></i> {{ result }}
+                        {% else %}
+                            <i class="fas fa-times-circle"></i> {{ result }}
+                        {% endif %}
+                    </div>
+
+                    <div class="details-box">
+                        <p><strong>EXTRACTED SERIAL:</strong> <span style="color: white; font-size: 16px;">{{ extracted_text }}</span></p>
+                        
+                        <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                             <p><i class="fas fa-crosshairs"></i> <strong>CURRENT SCAN:</strong></p>
+                             <p>Location: <span class="code" style="color: #e67e22;">{{ scan_location }}</span></p>
+                             <p>Time: <span class="code">{% now "M d, Y H:i" %}</span></p>
+                        </div>
+
+                        {% if block_details %}
+                        <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                            <p><i class="fas fa-link"></i> <strong>BLOCKCHAIN PROOF (ORIGIN):</strong></p>
+                            <p>Block Index: <span class="code">#{{ block_details.index }}</span></p>
+                            <p>Value: <span class="code">₹{{ block_details.denomination }}</span></p>
+                            <p>Block Hash: <span class="code">{{ block_details.hash|slice:":15" }}...</span></p>
+                            
+                            <p>Minted On: <span class="code" style="color: #f1c40f;">{{ block_details.timestamp|date:"M d, Y H:i" }}</span></p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <img src="{{ image_url }}" class="note-preview" alt="Scanned Note">
+                    
+                    <a href="{% url 'user_dashboard' %}" style="display: block; margin-top: 20px; color: #00b4d8; text-decoration: none; text-align: center;">
+                        <i class="fas fa-redo"></i> Scan Another Note
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</body>
+</html> 

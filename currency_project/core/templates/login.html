@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Poppins', sans-serif; height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); overflow: hidden; color: white; }
+        .container { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 40px; border-radius: 20px; width: 380px; border: 1px solid rgba(255, 255, 255, 0.2); text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        
+        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.7); z-index: 2; }
+        
+        input, select { width: 100%; padding: 12px 12px 12px 45px; background: rgba(255,255,255,0.1); border: none; border-radius: 30px; color: white; outline: none; box-sizing: border-box; appearance: none; }
+        input::placeholder { color: rgba(255,255,255,0.5); }
+        
+        /* Style for the Dropdown options (since they are white by default on some browsers) */
+        select option { background: #302b63; color: white; }
+
+        .btn { width: 100%; padding: 12px; background: linear-gradient(90deg, #00b4d8, #0077b6); border: none; border-radius: 30px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn:hover { transform: scale(1.02); box-shadow: 0 0 15px rgba(0, 180, 216, 0.5); }
+        
+        .links { margin-top: 20px; font-size: 12px; }
+        .links a { color: #00b4d8; text-decoration: none; }
+        .alert { background: rgba(231, 76, 60, 0.2); color: #ff6b6b; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <i class="fas fa-shield-alt" style="font-size: 40px; color: #00b4d8; margin-bottom: 15px;"></i>
+        <h2>System Login</h2>
+        
+        {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+        {% endfor %}
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="input-group">
+                <i class="fas fa-users-cog"></i>
+                <select name="role" required>
+                    <option value="user">Login as General User</option>
+                    <option value="admin">Login as Admin</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" name="username" placeholder="Username" required>
+            </div>
+            
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+            
+            <button type="submit" class="btn">LOGIN</button>
+        </form>
+
+        <div class="links">
+            Don't have an account? <a href="{% url 'register' %}">Register Here</a>
+        </div>
+    </div>
+</body>
+</html>
